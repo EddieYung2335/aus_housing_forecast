@@ -13,6 +13,10 @@ filename_abs_median_price_number_transfers = "total_price_and_number_of_transfer
 
 filename_rba_cash_rate = "cash_rate_target.xlsx"
 
+headers = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+}
+
 
 def download_abs_dwelling_values():
     # The first link https://www.abs.gov.au/statistics/economy/price-indexes-and-inflation/total-value-dwellings/mar-quarter-2026/643201.xlsx
