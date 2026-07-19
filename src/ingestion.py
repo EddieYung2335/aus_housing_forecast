@@ -35,9 +35,10 @@ def download_abs_dwelling_values():
 
         if response.status_code == 200:
             full_destination_path_1.write_bytes(response.content)
+            print("Successfully download Total value of dwellings, all series")
 
         else:
-            print(f"Download failed. Status COde: {response.status_code}")
+            print(f"Download failed. Status Code: {response.status_code}")
 
     except requests.exceptions.RequestException as e:
         print(f"Network Error: {e}")
@@ -45,9 +46,24 @@ def download_abs_dwelling_values():
     full_destination_path_2 = (
         target_directory / filename_abs_median_price_number_transfers
     )
-    target_directory.mkdir(parents=True, exist_ok=True)
 
-    print("successfully download ABS dwelling values")
+    try:
+        print("Fetching ABS median price...")
+        response = requests.get(
+            median_price_number_transfer, headers=headers, timeout=15
+        )
+
+        if response.status_code == 200:
+            full_destination_path_2.write_bytes(response.content)
+            print("Successfully download median price and number of transfers")
+
+        else:
+            print(f"Download failed. Status COde: {response.status_code}")
+
+    except requests.exceptions.RequestException as e:
+        print(f"Network Error: {e}")
+
+    target_directory.mkdir(parents=True, exist_ok=True)
 
 
 def download_rba_cash_rate():
