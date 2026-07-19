@@ -72,8 +72,26 @@ def download_abs_dwelling_values():
 
 
 def download_rba_cash_rate():
-    # https://www.rba.gov.au/statistics/tables/xls/f01d.xlsx
-    print("successfully download RBA cash rate")
+    rba_cash_rate = "https://www.rba.gov.au/statistics/tables/xls/f01d.xlsx"
+    full_destination = target_directory / filename_rba_cash_rate
+
+    if full_destination.exists():
+        print(f"Skipped download: '{filename_rba_cash_rate}' already exists in cache.")
+
+    else:
+        try:
+            print("Fetching RBA cash rate target...")
+            response = requests.get(rba_cash_rate, headers=headers, timeout=15)
+
+            if response.status_code == 200:
+                full_destination.write_bytes(response.content)
+                print("Successfully download cash rate target")
+
+            else:
+                print(f"Download failed. Status Code: {response.status_code}")
+
+        except requests.exceptions.RequestException as e:
+            print(f"Network Error: {e}")
 
 
 if __name__ == "__main__":
