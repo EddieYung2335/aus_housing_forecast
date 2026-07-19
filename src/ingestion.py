@@ -9,7 +9,7 @@ project_root = Path(__file__).resolve().parent.parent
 target_directory = project_root / "data" / "raw"
 
 filename_abs_total = "total_value_dwellings.xlsx"
-filename_abs_median_price_number_transfers = "total_price_and_number_of_transfers.xlsx"
+filename_abs_median_price_number_transfers = "median_price_and_number_of_transfers.xlsx"
 
 filename_rba_cash_rate = "cash_rate_target.xlsx"
 
@@ -70,6 +70,8 @@ def download_abs_dwelling_values():
         except requests.exceptions.RequestException as e:
             print(f"Network Error: {e}")
 
+    return (full_destination_path_1, full_destination_path_2)
+
 
 def download_rba_cash_rate():
     rba_cash_rate = "https://www.rba.gov.au/statistics/tables/xls/f01d.xlsx"
@@ -92,6 +94,8 @@ def download_rba_cash_rate():
 
         except requests.exceptions.RequestException as e:
             print(f"Network Error: {e}")
+
+    return full_destination
 
 
 if __name__ == "__main__":
