@@ -1,5 +1,6 @@
 import pandas as pd
 from pathlib import Path
+
 ROOT_DIR = Path(__file__).resolve().parent.parent
 RAW_DIR = ROOT_DIR / "data" / "raw"
 PROCESSED_DIR = ROOT_DIR / "data" / "processed"
@@ -49,3 +50,15 @@ def load_abs_sheet(path: Path, sheet_name: str = "Data1") -> pd.DataFrame:
 
     result = pd.concat(frames, ignore_index=True)
     return result
+def load_cash_rate(path: Path) -> pd.DataFrame:
+    """Peel RBA cash rate sheet into [date, cash_rate], quarterly."""
+    raw = pd.read_excel(path, sheet_name="Data", header=None)
+
+    actual_data = raw.iloc[11:]
+    date_col = pd.to_datetime(actual_data.iloc[:, 0])
+    rate_col = pd.to_numeric(actual_data.iloc[:, 1])
+
+    daily = pd.DataFrame({"date": date_col, "rate": rate_col}).set_index("date")
+    quarterly = daily.resample("QE").last().reset_index()
+
+    return quarterly
