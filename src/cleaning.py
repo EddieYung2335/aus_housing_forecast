@@ -142,6 +142,8 @@ def build_panel() -> pd.DataFrame:
 
 
 if __name__ == "__main__":
+    print("Creating panel...")
     panel = build_panel()
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
     panel.to_parquet(PROCESSED_DIR / "panel.parquet")
+    print("Successfully created panel.parquet")
