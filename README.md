@@ -6,7 +6,6 @@ Forecasting Australia housing prices by state/capital using ML (Random Forest, X
 
 ```bash
 git clone https://github.com/EddieYung2335/aus_housing_forecast
-cd BrisHouse
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirement.txt
