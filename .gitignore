@@ -4,3 +4,4 @@ __pycache__/
 models/*.pkl
 .DS_Store
 data/raw/*.xlsx
+data/processed/panel.parquet
