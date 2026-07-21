@@ -10,6 +10,8 @@ def wanted_series(text: str) -> str | None:
         return "total_value"
     if text.startswith("Mean price of residential dwellings"):
         return "mean_price"
+    if text.startswith("Median Price of Established House Transfers (Unstratified) "):
+        return "median_price"
     return None
 
 
