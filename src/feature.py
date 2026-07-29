@@ -34,7 +34,27 @@ def build_features(panel: pd.DataFrame) -> pd.DataFrame:
     panel["roll3_std"] = roll3_std
     panel["roll6_mean"] = roll6_mean
     panel["roll6_std"] = roll6_std
-    print(panel)
+
+    # Seasonality - to investigate the 周期性 of buying house
+    # e.g. house is more expensive in spring
+    months = panel["date"].dt.month
+    sin_col = np.sin(2 * np.pi * months / 12)
+    cos_col = np.cos(2 * np.pi * months / 12)
+    panel["month_sin"] = sin_col
+    panel["month_cos"] = cos_col
+
+    # Region Encoding
+    # Model cannot understand "Adelaide", "Melbourne", set them to
+    # |Adelaide | Melbourne  | Brisbane |
+    # --------- | ---------- | -------- |
+    # |     1       0           0
+    #       0       1           0
+    #       0       0           1
+    # One column for each region, if the current target is in the region, set 1,
+    # 0 otherwise
+    dummies = pd.get_dummies(panel["region"], drop_first=False)
+
+    panel = pd.concat([panel, dummies], axis=1)
 
     return panel
 
