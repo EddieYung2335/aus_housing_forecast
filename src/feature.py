@@ -56,6 +56,12 @@ def build_features(panel: pd.DataFrame) -> pd.DataFrame:
 
     panel = pd.concat([panel, dummies], axis=1)
 
+    panel = panel.dropna(subset=["roll6_mean", "roll6_std"]).reset_index(drop=True)
+
+    print(panel["roll6_mean"])
+
+    print(panel)
+
     return panel
 
 
