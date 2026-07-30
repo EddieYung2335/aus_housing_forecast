@@ -13,8 +13,8 @@ PROCESSED_DIR = ROOT_DIR / "data" / "processed"
 MODELS_DIR = ROOT_DIR / "models"
 MODELS_DIR.mkdir(exist_ok=True)
 
-model_path = MODELS_DIR / "rf_model.joblib"
-metadata_path = MODELS_DIR / "rf_model_metadata.json"
+model_path = MODELS_DIR / "model.joblib"
+metadata_path = MODELS_DIR / "model_metadata.json"
 panel = pd.read_parquet(PROCESSED_DIR / "features.parquet")
 
 # Each region have different data of date, some exist in 2003, some does not.
@@ -145,7 +145,9 @@ rf_avg_gap_mae = rf_avg_test_mae / rf_avg_train_mae
 rf_avg_gap_rmse = rf_avg_test_rmse / rf_avg_train_rmse
 
 print(f"Average Train MAE: {rf_avg_train_mae}\nAverage Test MAE: {rf_avg_test_mae}\n")
-print(f"Average Train RMSE: {rf_avg_train_rmse}\nAverage Test RMSE: {rf_avg_test_rmse}\n")
+print(
+    f"Average Train RMSE: {rf_avg_train_rmse}\nAverage Test RMSE: {rf_avg_test_rmse}\n"
+)
 
 ### GridSearchCV
 rf_param_grid = {
@@ -249,6 +251,25 @@ xgb_gap_best_mae = xgb_best_mae / xgb_train_best_mae
 xgb_gap_best_rmse = xgb_best_rmse / xgb_train_best_rmse
 
 
+if rf_best_mae <= xgb_best_mae:
+    winner_model = rf_best_model
+    winner_name = "RandomForestRegressor"
+    winner_param = rf_best_params
+    winner_mae = rf_best_mae
+    winner_rmse = rf_best_rmse
+    winner_gap_mae = rf_gap_best_mae
+    winner_gap_rmse = rf_gap_best_rmse
+    winner_best_score = rf_best_score
+else:
+    winner_model = xgb_best_model
+    winner_name = "XGBRegressor"
+    winner_param = xgb_best_params
+    winner_mae = xgb_best_mae
+    winner_rmse = xgb_best_rmse
+    winner_gap_mae = xgb_gap_best_mae
+    winner_gap_rmse = xgb_gap_best_rmse
+    winner_best_score = xgb_best_score
+
 ### Model Comparison Table
 comparison = pd.DataFrame(
     {
@@ -267,15 +288,17 @@ print("\n" + comparison.to_string(index=False, float_format=lambda x: f"{x:.5f}"
 
 
 print(f"Saving the best model into {MODELS_DIR}...")
-joblib.dump(rf_best_model, model_path)
+joblib.dump(winner_model, model_path)
 print("Done!")
 
 metadata = {
-    "best_params": rf_best_params,
-    "best_score": rf_best_score,
-    "test_mae": rf_best_mae,
-    "test_rmse": rf_best_rmse,
-    "gap_mae": rf_gap_best_mae,
+    "name": winner_name,
+    "best_params": winner_param,
+    "best_score": winner_best_score,
+    "test_mae": winner_mae,
+    "test_rmse": winner_rmse,
+    "gap_mae": winner_gap_mae,
+    "gap_rmse": winner_gap_rmse,
 }
 print(f"Saving the metadata into {MODELS_DIR}...")
 
