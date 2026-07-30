@@ -65,6 +65,7 @@ rf_rmse = np.sqrt(mean_squared_error(target_test, model_pred))
 print(f"RF Metrics MAE: {rf_mae}\nRF Metrics RMSE: {rf_rmse}\n")
 
 ### Overfitting Check - Prevent the model from memorizing the data instead of generalizing it
+print(f"\n\nOverfitting Check for Random Forest Regressor...")
 train_pred = model.predict(feat_train)
 train_mae = mean_absolute_error(target_train, train_pred)
 train_rmse = np.sqrt(mean_squared_error(target_train, train_pred))
@@ -75,6 +76,7 @@ print(f"Train Metrics MAE: {train_mae}\nTrain Metrics RMSE: {train_rmse}\n")
 mae_gap = rf_mae / train_mae
 rmse_gap = rf_rmse / train_rmse
 print(f"MAE Gap: {mae_gap}\nRMSE Gap: {rmse_gap}\n")
+print(f"Overfitting Check Complete...\n\n")
 
 ### Time Series Cross Validation
 # We use TimeSeriesSplit to ensure that every fold respects the temporal order of the data, preventing data leakage from future to past.
@@ -127,6 +129,8 @@ print(f"Average Train MAE: {avg_train_mae}\nAverage Test MAE: {avg_test_mae}\n")
 print(f"Average Train RMSE: {avg_train_rmse}\nAverage Test RMSE: {avg_test_rmse}\n")
 
 ### GridSearchCV
+
+print("\n\nBest Model Below......\n\n")
 param_grid = {
     "n_estimators": [50, 100, 200, 500, 700, 1000],
     "max_depth": [2, 3, 4, 5, 10, 15, 20, 25, 30, None],
@@ -165,3 +169,39 @@ best_model = search.best_estimator_
 print(
     f"Best Params = {best_params}\nBest Score = {best_score}\nBest Model = {best_model}"
 )
+
+### Using the best model now
+test_pred_best = best_model.predict(feat_test)
+
+best_mae = mean_absolute_error(target_test, test_pred_best)
+best_rmse = np.sqrt(mean_squared_error(target_test, test_pred_best))
+
+print(f"Best MAE = {best_mae}\nBest RMSE = {best_rmse}\n")
+
+
+### Best model Overfitting
+train_pred_best = best_model.predict(feat_train)
+
+train_best_mae = mean_absolute_error(target_train, train_pred_best)
+train_best_rmse = np.sqrt(mean_squared_error(target_train, train_pred_best))
+print(f"Best Train MAE = {train_best_mae}\nBest Train RMSE = {train_best_rmse}\n")
+
+
+gap_best_mae = best_mae / train_best_mae
+gap_best_rmse = best_rmse / train_best_rmse
+print(f"Gap:\nBest MAE = {gap_best_mae}\nBest RMSE = {gap_best_rmse}")
+
+### Model Comparison Table
+comparison = pd.DataFrame(
+    {
+        "Model": [
+            "Baseline",
+            "Original RF (depth=10)",
+            f"Tuned RF (depth={best_params['max_depth']})",
+        ],
+        "Test MAE": [mae, rf_mae, best_mae],
+        "Test RMSE": [rmse, rf_rmse, best_rmse],
+        "Gap (test/train)": [None, mae_gap, gap_best_mae],
+    }
+)
+print("\n" + comparison.to_string(index=False, float_format=lambda x: f"{x:.5f}"))
