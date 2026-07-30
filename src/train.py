@@ -106,6 +106,11 @@ rf_test_maes = []
 rf_train_rmses = []
 rf_test_rmses = []
 
+xgb_train_maes = []
+xgb_test_maes = []
+xgb_train_rmses = []
+xgb_test_rmses = []
+
 
 for date_train_index, date_test_index in tscv.split(sorted_dates):
     train_dates = sorted_dates[date_train_index]
@@ -137,6 +142,24 @@ for date_train_index, date_test_index in tscv.split(sorted_dates):
     rf_train_rmses.append(train_rmse_fold)
     rf_test_rmses.append(test_rmse_fold)
 
+    xgb_fold_model = XGBRegressor(
+        n_estimators=500, random_state=42, max_depth=5, learning_rate=0.05, n_jobs=-1
+    )
+    xgb_fold_model.fit(X_train_fold, y_train_fold)
+
+    xgb_train_pred_fold = xgb_fold_model.predict(X_train_fold)
+    xgb_test_pred_fold = xgb_fold_model.predict(X_test_fold)
+
+    xgb_train_mae_fold = mean_absolute_error(y_train_fold, xgb_train_pred_fold)
+    xgb_test_mae_fold = mean_absolute_error(y_test_fold, xgb_test_pred_fold)
+    xgb_train_rmse_fold = np.sqrt(mean_squared_error(y_train_fold, xgb_train_pred_fold))
+    xgb_test_rmse_fold = np.sqrt(mean_squared_error(y_test_fold, xgb_test_pred_fold))
+
+    xgb_train_maes.append(xgb_train_mae_fold)
+    xgb_test_maes.append(xgb_test_mae_fold)
+    xgb_train_rmses.append(xgb_train_rmse_fold)
+    xgb_test_rmses.append(xgb_test_rmse_fold)
+
 rf_avg_train_mae = np.mean(rf_train_maes)
 rf_avg_test_mae = np.mean(rf_test_maes)
 rf_avg_train_rmse = np.mean(rf_train_rmses)
@@ -144,9 +167,20 @@ rf_avg_test_rmse = np.mean(rf_test_rmses)
 rf_avg_gap_mae = rf_avg_test_mae / rf_avg_train_mae
 rf_avg_gap_rmse = rf_avg_test_rmse / rf_avg_train_rmse
 
-print(f"Average Train MAE: {rf_avg_train_mae}\nAverage Test MAE: {rf_avg_test_mae}\n")
+xgb_avg_train_mae = np.mean(xgb_train_maes)
+xgb_avg_test_mae = np.mean(xgb_test_maes)
+xgb_avg_train_rmse = np.mean(xgb_train_rmses)
+xgb_avg_test_rmse = np.mean(xgb_test_rmses)
+xgb_avg_gap_mae = xgb_avg_test_mae / xgb_avg_train_mae
+xgb_avg_gap_rmse = xgb_avg_test_rmse / xgb_avg_train_rmse
+
+print(f"RF Average Train MAE: {rf_avg_train_mae}\nRF Average Test MAE: {rf_avg_test_mae}\n")
 print(
-    f"Average Train RMSE: {rf_avg_train_rmse}\nAverage Test RMSE: {rf_avg_test_rmse}\n"
+    f"RF Average Train RMSE: {rf_avg_train_rmse}\nRF Average Test RMSE: {rf_avg_test_rmse}\n"
+)
+print(f"XGB Average Train MAE: {xgb_avg_train_mae}\nXGB Average Test MAE: {xgb_avg_test_mae}\n")
+print(
+    f"XGB Average Train RMSE: {xgb_avg_train_rmse}\nXGB Average Test RMSE: {xgb_avg_test_rmse}\n"
 )
 
 ### GridSearchCV
