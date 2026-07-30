@@ -1,0 +1,11 @@
+{
+  "best_params": {
+    "max_depth": 4,
+    "min_samples_leaf": 20,
+    "n_estimators": 1000
+  },
+  "best_score": -0.026538807628607046,
+  "test_mae": 0.02671204471048049,
+  "test_rmse": 0.033808392899474245,
+  "gap_mae": 1.1492731942390746
+}

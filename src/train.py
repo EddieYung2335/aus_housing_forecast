@@ -4,10 +4,16 @@ from pathlib import Path
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import TimeSeriesSplit, GridSearchCV
+import joblib
+import json
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 PROCESSED_DIR = ROOT_DIR / "data" / "processed"
+MODELS_DIR = ROOT_DIR / "models"
+MODELS_DIR.mkdir(exist_ok=True)
 
+model_path = MODELS_DIR / "rf_model.joblib"
+metadata_path = MODELS_DIR / "rf_model_metadata.json"
 panel = pd.read_parquet(PROCESSED_DIR / "features.parquet")
 
 # Each region have different data of date, some exist in 2003, some does not.
@@ -50,8 +56,6 @@ mae = mean_absolute_error(target_test, baseline_pred)
 # rmse punish big misses harder than small one
 rmse = np.sqrt(mean_squared_error(target_test, baseline_pred))
 
-print(f"Raw MAE: {mae}\nRaw RMSE: {rmse}\n")
-
 
 ### Random Forest Regressor Prediction
 model = RandomForestRegressor(
@@ -62,21 +66,18 @@ model_pred = model.predict(feat_test)
 rf_mae = mean_absolute_error(target_test, model_pred)
 rf_rmse = np.sqrt(mean_squared_error(target_test, model_pred))
 
-print(f"RF Metrics MAE: {rf_mae}\nRF Metrics RMSE: {rf_rmse}\n")
 
 ### Overfitting Check - Prevent the model from memorizing the data instead of generalizing it
-print(f"\n\nOverfitting Check for Random Forest Regressor...")
+
 train_pred = model.predict(feat_train)
 train_mae = mean_absolute_error(target_train, train_pred)
 train_rmse = np.sqrt(mean_squared_error(target_train, train_pred))
 
-print(f"Train Metrics MAE: {train_mae}\nTrain Metrics RMSE: {train_rmse}\n")
 
 ### Quantify Gap
 mae_gap = rf_mae / train_mae
 rmse_gap = rf_rmse / train_rmse
-print(f"MAE Gap: {mae_gap}\nRMSE Gap: {rmse_gap}\n")
-print(f"Overfitting Check Complete...\n\n")
+
 
 ### Time Series Cross Validation
 # We use TimeSeriesSplit to ensure that every fold respects the temporal order of the data, preventing data leakage from future to past.
@@ -130,7 +131,7 @@ print(f"Average Train RMSE: {avg_train_rmse}\nAverage Test RMSE: {avg_test_rmse}
 
 ### GridSearchCV
 
-print("\n\nBest Model Below......\n\n")
+
 param_grid = {
     "n_estimators": [50, 100, 200, 500, 700, 1000],
     "max_depth": [2, 3, 4, 5, 10, 15, 20, 25, 30, None],
@@ -176,8 +177,6 @@ test_pred_best = best_model.predict(feat_test)
 best_mae = mean_absolute_error(target_test, test_pred_best)
 best_rmse = np.sqrt(mean_squared_error(target_test, test_pred_best))
 
-print(f"Best MAE = {best_mae}\nBest RMSE = {best_rmse}\n")
-
 
 ### Best model Overfitting
 train_pred_best = best_model.predict(feat_train)
@@ -189,7 +188,7 @@ print(f"Best Train MAE = {train_best_mae}\nBest Train RMSE = {train_best_rmse}\n
 
 gap_best_mae = best_mae / train_best_mae
 gap_best_rmse = best_rmse / train_best_rmse
-print(f"Gap:\nBest MAE = {gap_best_mae}\nBest RMSE = {gap_best_rmse}")
+
 
 ### Model Comparison Table
 comparison = pd.DataFrame(
@@ -205,3 +204,21 @@ comparison = pd.DataFrame(
     }
 )
 print("\n" + comparison.to_string(index=False, float_format=lambda x: f"{x:.5f}"))
+
+
+print(f"Saving the best model into {MODELS_DIR}...")
+joblib.dump(best_model, model_path)
+print("Done!")
+
+metadata = {
+    "best_params": best_params,
+    "best_score": best_score,
+    "test_mae": best_mae,
+    "test_rmse": best_rmse,
+    "gap_mae": gap_best_mae,
+}
+print(f"Saving the metadata into {MODELS_DIR}...")
+
+with open(metadata_path, "w") as f:
+    json.dump(metadata, f, indent=2)
+print("Done!")
