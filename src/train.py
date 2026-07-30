@@ -3,8 +3,7 @@ import pandas as pd
 from pathlib import Path
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import TimeSeriesSplit
-
+from sklearn.model_selection import TimeSeriesSplit, GridSearchCV
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 PROCESSED_DIR = ROOT_DIR / "data" / "processed"
@@ -86,6 +85,7 @@ test_maes = []
 train_rmses = []
 test_rmses = []
 
+
 for date_train_index, date_test_index in tscv.split(sorted_dates):
     train_dates = sorted_dates[date_train_index]
     test_dates = sorted_dates[date_test_index]
@@ -125,3 +125,43 @@ avg_gap_rmse = avg_test_rmse / avg_train_rmse
 
 print(f"Average Train MAE: {avg_train_mae}\nAverage Test MAE: {avg_test_mae}\n")
 print(f"Average Train RMSE: {avg_train_rmse}\nAverage Test RMSE: {avg_test_rmse}\n")
+
+### GridSearchCV
+param_grid = {
+    "n_estimators": [50, 100, 200, 500, 700, 1000],
+    "max_depth": [2, 3, 4, 5, 10, 15, 20, 25, 30, None],
+    "min_samples_leaf": [1, 5, 10, 20, 50],
+}
+
+base_model = RandomForestRegressor(random_state=42, n_jobs=-1)
+
+train_sorted_dates = np.sort(panel.date[train_mask].unique())
+train_date_series = panel.date[train_mask]
+
+custom_cv = []
+
+for date_train_index, date_val_index in tscv.split(train_sorted_dates):
+    fold_train_dates = train_sorted_dates[date_train_index]
+    fold_val_dates = train_sorted_dates[date_val_index]
+
+    fold_train_pos = train_date_series.isin(fold_train_dates)
+    fold_val_pos = train_date_series.isin(fold_val_dates)
+
+    custom_cv.append((fold_train_pos, fold_val_pos))
+
+search = GridSearchCV(
+    estimator=base_model,
+    param_grid=param_grid,
+    cv=custom_cv,
+    scoring="neg_mean_absolute_error",
+    n_jobs=-1,
+)
+
+search.fit(feat_train, target_train)
+
+best_params = search.best_params_
+best_score = search.best_score_
+best_model = search.best_estimator_
+print(
+    f"Best Params = {best_params}\nBest Score = {best_score}\nBest Model = {best_model}"
+)
