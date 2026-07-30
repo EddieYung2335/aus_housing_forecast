@@ -27,6 +27,20 @@ python src/cleaning.py
 
 **Ingestion skips files already cached in `data/raw`. Delete a file there to force re-download.**
 
+Build model features (lags, rolling stats, seasonality, region dummies) into `data/processed/features.parquet`:
+
+```bash
+python src/feature.py
+```
+
+Train baseline + Random Forest models, tune hyperparameters via `GridSearchCV`, and evaluate on a time-based holdout split:
+
+```bash
+python src/train.py
+```
+
+Saves the tuned model to `models/rf_model.joblib` and its parameters/metrics to `models/rf_model_metadata.json`.
+
 ## Data Source
 
 - ABS Total Value of Dwellings (`total_value_dwellings.xlsx`)
