@@ -58,9 +58,7 @@ def build_features(panel: pd.DataFrame) -> pd.DataFrame:
 
     panel["target"] = panel.groupby("region")["log_return"].shift(-1)
 
-    panel = panel.dropna(subset=["roll6_mean", "roll6_std", "target"]).reset_index(
-        drop=True
-    )
+    panel = panel.dropna(subset=["roll6_mean", "roll6_std"]).reset_index(drop=True)
     return panel
 
 
@@ -71,4 +69,3 @@ if __name__ == "__main__":
     panel = build_features(data)
     print("Writing to features.parquet")
     panel.to_parquet(PROCESSED_DIR / "features.parquet")
-

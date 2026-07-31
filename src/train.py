@@ -16,11 +16,12 @@ MODELS_DIR.mkdir(exist_ok=True)
 model_path = MODELS_DIR / "model.joblib"
 metadata_path = MODELS_DIR / "model_metadata.json"
 panel = pd.read_parquet(PROCESSED_DIR / "features.parquet")
+data_max_date = panel.date.max()
+panel = panel.dropna(subset=["target"]).reset_index(drop=True)
 
 # Each region have different data of date, some exist in 2003, some does not.
 # To accurately treat them, we have to find every distinct date value in the panel
 sorted_dates = np.sort(panel["date"].unique())
-
 
 split_index = round(0.75 * len(sorted_dates))
 cutoff_date = sorted_dates[split_index - 1]
@@ -49,13 +50,30 @@ target_test = target[test_mask]
 feat_train = features[train_mask]
 feat_test = features[test_mask]
 
-################## Baseline Model ########################
-baseline_pred = feat_test.log_return
+################## Baseline Models ########################
+baselines = {
+    # If this month raise 3%, predict next month raise 3%
+    "Persistence (last return)": feat_test.log_return,
+    # If this month is $200, next month is $200 too, no change
+    "Zero (random walk)": np.zeros(len(target_test)),
+    # Predict a constant (target_train.mean()) for every month
+    "Train mean": np.full(len(target_test), target_train.mean()),
+    # The mean of the log_return for last three months
+    "Roll3 mean": feat_test.roll3_mean,
+}
 
-# How wrong the prediction is here...
-mae = mean_absolute_error(target_test, baseline_pred)
 # rmse punish big misses harder than small one
-rmse = np.sqrt(mean_squared_error(target_test, baseline_pred))
+baseline_scores = {
+    name: (
+        mean_absolute_error(target_test, pred),
+        np.sqrt(mean_squared_error(target_test, pred)),
+    )
+    for name, pred in baselines.items()
+}
+
+# This function help us to decide the strongest baseline model
+best_baseline_name = min(baseline_scores, key=lambda n: baseline_scores[n][0])
+best_baseline_mae, best_baseline_rmse = baseline_scores[best_baseline_name]
 
 
 ################## Random Forest Regressor Prediction ########################
@@ -174,11 +192,15 @@ xgb_avg_test_rmse = np.mean(xgb_test_rmses)
 xgb_avg_gap_mae = xgb_avg_test_mae / xgb_avg_train_mae
 xgb_avg_gap_rmse = xgb_avg_test_rmse / xgb_avg_train_rmse
 
-print(f"RF Average Train MAE: {rf_avg_train_mae}\nRF Average Test MAE: {rf_avg_test_mae}\n")
+print(
+    f"RF Average Train MAE: {rf_avg_train_mae}\nRF Average Test MAE: {rf_avg_test_mae}\n"
+)
 print(
     f"RF Average Train RMSE: {rf_avg_train_rmse}\nRF Average Test RMSE: {rf_avg_test_rmse}\n"
 )
-print(f"XGB Average Train MAE: {xgb_avg_train_mae}\nXGB Average Test MAE: {xgb_avg_test_mae}\n")
+print(
+    f"XGB Average Train MAE: {xgb_avg_train_mae}\nXGB Average Test MAE: {xgb_avg_test_mae}\n"
+)
 print(
     f"XGB Average Train RMSE: {xgb_avg_train_rmse}\nXGB Average Test RMSE: {xgb_avg_test_rmse}\n"
 )
@@ -307,17 +329,20 @@ else:
 ### Model Comparison Table
 comparison = pd.DataFrame(
     {
-        "Model": [
-            "Baseline",
+        "Model": list(baseline_scores)
+        + [
             "Original RF (depth=10)",
             f"Tuned RF (depth={rf_best_params['max_depth']})",
             f"Tuned XGB (depth={xgb_best_params['max_depth']})",
         ],
-        "Test MAE": [mae, rf_mae, rf_best_mae, xgb_best_mae],
-        "Test RMSE": [rmse, rf_rmse, rf_best_rmse, xgb_best_rmse],
-        "Gap (test/train)": [None, rf_mae_gap, rf_gap_best_mae, xgb_gap_best_mae],
+        "Test MAE": [mae for mae, _ in baseline_scores.values()]
+        + [rf_mae, rf_best_mae, xgb_best_mae],
+        "Test RMSE": [rmse for _, rmse in baseline_scores.values()]
+        + [rf_rmse, rf_best_rmse, xgb_best_rmse],
+        "Gap (test/train)": [None] * len(baseline_scores)
+        + [rf_mae_gap, rf_gap_best_mae, xgb_gap_best_mae],
     }
-)
+).sort_values("Test MAE")
 print("\n" + comparison.to_string(index=False, float_format=lambda x: f"{x:.5f}"))
 
 
@@ -333,6 +358,12 @@ metadata = {
     "test_rmse": winner_rmse,
     "gap_mae": winner_gap_mae,
     "gap_rmse": winner_gap_rmse,
+    "train_cutoff": pd.Timestamp(cutoff_date).date().isoformat(),
+    "data_max_date": pd.Timestamp(data_max_date).date().isoformat(),
+    "baseline_name": best_baseline_name,
+    "baseline_mae": best_baseline_mae,
+    "baseline_rmse": best_baseline_rmse,
+    "mae_vs_baseline": winner_mae / best_baseline_mae,
 }
 print(f"Saving the metadata into {MODELS_DIR}...")
 

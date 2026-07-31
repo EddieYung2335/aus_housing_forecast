@@ -5,9 +5,15 @@
     "min_samples_leaf": 20,
     "n_estimators": 1000
   },
-  "best_score": -0.026538807628607046,
+  "best_score": -0.026538807628607042,
   "test_mae": 0.02671204471048049,
-  "test_rmse": 0.033808392899474245,
+  "test_rmse": 0.03380839289947424,
   "gap_mae": 1.1492731942390746,
-  "gap_rmse": 1.0588104835144585
+  "gap_rmse": 1.0588104835144583,
+  "train_cutoff": "2020-06-01",
+  "data_max_date": "2026-03-01",
+  "baseline_name": "Roll3 mean",
+  "baseline_mae": 0.028969063828954363,
+  "baseline_rmse": 0.03890333395574487,
+  "mae_vs_baseline": 0.9220886414624833
 }
