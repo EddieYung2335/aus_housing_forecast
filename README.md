@@ -33,13 +33,23 @@ Build model features (lags, rolling stats, seasonality, region dummies) into `da
 python src/feature.py
 ```
 
-Train baseline + Random Forest models, tune hyperparameters via `GridSearchCV`, and evaluate on a time-based holdout split:
+Train baselines, Random Forest, and XGBoost, tune hyperparameters via `GridSearchCV` with time-series CV folds, and evaluate on a time-based holdout split:
 
 ```bash
 python src/train.py
 ```
 
-Saves the tuned model to `models/rf_model.joblib` and its parameters/metrics to `models/rf_model_metadata.json`.
+Saves whichever of the two tuned models has the lower test MAE to `models/model.joblib`, and its parameters/metrics to `models/model_metadata.json`.
+
+Predict next quarter's median price for every region:
+
+```bash
+python src/predict.py
+```
+
+Takes each region's latest feature row, predicts the next quarter's log return, and converts it back to a price. Feature columns are read from the saved model's `feature_names_in_`, so they always match what the model was trained on. Bands are ±`test_mae` applied in log space — a typical error range, not a confidence interval. Writes `data/processed/predictions.parquet`.
+
+**`models/model.joblib` is gitignored, so run `train.py` before `predict.py` on a fresh clone.**
 
 ## Data Source
 
