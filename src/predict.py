@@ -23,9 +23,9 @@ def predict_next_quarter(panel, model, metadata):
 
     # Keep the columns that we want only
     cols = model.feature_names_in_
-    features_latest = latest[cols]
     missing = set(cols) - set(latest.columns)
     assert not missing, f"missing features: {missing}"
+    features_latest = latest[cols]
 
     # Predict on the features of the last row for each region
     pred_log_return = model.predict(features_latest)
