@@ -51,6 +51,14 @@ Takes each region's latest feature row, predicts the next quarter's log return, 
 
 **`models/model.joblib` is gitignored, so run `train.py` before `predict.py` on a fresh clone.**
 
+Launch the dashboard:
+
+```bash
+streamlit run dashboard/app.py
+```
+
+Per region: current price, forecast with its error band, and a 10-year history chart; below that, all regions ranked by forecast change. The dashboard only reads `predictions.parquet` and `features.parquet` — it loads no model and recomputes nothing, so every number on screen traces back to a `predict.py` run.
+
 ## Data Source
 
 - ABS Total Value of Dwellings (`total_value_dwellings.xlsx`)
