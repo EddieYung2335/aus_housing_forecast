@@ -15,6 +15,9 @@ pip install -r requirements.txt
 
 ## Run
 
+**[Live dashboard →](https://aus-housing-forecast.streamlit.app/)**
+![Dashboard](docs/dashboard.png)
+
 Download raw data (ABS dwelling values + median price, RBA cash rate) into `data/raw`:
 
 ```bash
