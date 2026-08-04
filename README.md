@@ -10,7 +10,7 @@ The model is a tuned Random Forest on log returns. It beats the best naive basel
 git clone https://github.com/EddieYung2335/aus_housing_forecast
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirement.txt
+pip install -r requirements.txt
 ```
 
 ## Run
@@ -60,6 +60,8 @@ streamlit run dashboard/app.py
 ```
 
 Per region: current price, forecast with its error band, and a 10-year history chart; below that, all regions ranked by forecast change. The dashboard only reads `predictions.parquet` and `features.parquet` — it loads no model and recomputes nothing, so every number on screen traces back to a `predict.py` run.
+
+**`features.parquet` and `predictions.parquet` are checked in as a snapshot of one `train.py` + `predict.py` run, so the dashboard works on a fresh clone. Rerun both scripts to update them.**
 
 Run the tests:
 
