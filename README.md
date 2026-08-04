@@ -2,7 +2,11 @@
 
 Forecasts the next quarter's median house price for 15 Australian regions, using ABS median price data and the RBA cash rate.
 
-The model is a tuned Random Forest on log returns. It beats the best naive baseline by 8%. See [Results](#results) for what that mean.
+The model is a tuned Random Forest on log returns. It beats the best naive baseline by 8%. See [Results](#results) for what that means.
+
+**[Live dashboard →](https://aus-housing-forecast.streamlit.app/)**
+
+![Dashboard](docs/dashboard.png)
 
 ## Setup
 
@@ -14,9 +18,6 @@ pip install -r requirements.txt
 ```
 
 ## Run
-
-**[Live dashboard →](https://aus-housing-forecast.streamlit.app/)**
-![Dashboard](docs/dashboard.png)
 
 Download raw data (ABS dwelling values + median price, RBA cash rate) into `data/raw`:
 
