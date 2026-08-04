@@ -5,4 +5,6 @@ models/*.pkl
 .DS_Store
 data/raw/*.xlsx
 data/processed/*
+!data/processed/features.parquet
+!data/processed/predictions.parquet
 models/*.joblib
